@@ -7,7 +7,7 @@ For compiling the program Go Lang is required. Please note that it was developed
 
 ### Compiling it
 
-For Compiling it into the subdirectory ´´bin/´´ run:
+For Compiling it into the subdirectory ``bin/`` run:
 
     $ go build -o bin/hosts
 
