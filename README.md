@@ -18,39 +18,39 @@ If you for example want to add it to your default path for binaries you could ru
 ## Usage
 ### Listing
 
-  $ sudo hosts list
+    $ sudo hosts list
 
 ### Adding
 
-  $ sudo hosts add <ip> <hostname>
+    $ sudo hosts add <ip> <hostname>
 
   So for instance:
 
-  $ sudo hosts add 8.8.8.8 ggdns.com
+    $ sudo hosts add 8.8.8.8 ggdns.com
 
 ### Removing
 
-  $ sudo hosts rm <ip|hostname>
+    $ sudo hosts rm <ip|hostname>
 
   So for instance:
 
-  $ sudo hosts rm 8.8.8.8
+    $ sudo hosts rm 8.8.8.8
 
   but also:
 
-  $ sudo hosts rm ggdns.com
+    $ sudo hosts rm ggdns.com
 
 
 ### Commenting
 
   To comment an entry type the following:
 
-  $ sudo hosts com <ip|hostname>
+    $ sudo hosts com <ip|hostname>
 
   To UNcomment an entry type the following:
 
-  $ sudo hosts ucom <ip|hostname>
+    $ sudo hosts ucom <ip|hostname>
 
   So for instance:
 
-  $ sudo hosts com ggdns.com
+    $ sudo hosts com ggdns.com
