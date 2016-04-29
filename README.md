@@ -1,4 +1,4 @@
-# hosts_cli
+# hosts CLI
 
 This is a utility to easily manage your DNS-entries in ``/etc/hosts``. You can list, add, remove, comment or uncomment entries with it.
 
