@@ -9,7 +9,7 @@ For compiling the program Go Lang is required. Please note that it was developed
 
 For Compiling it into the subdirectory bin/ run:
 
-  go build -o bin/hosts
+  $ go build -o bin/hosts
 
 If you for example want to add it to your default path for binaries you could run:
-  go build -o /usr/local/bin/hosts
+  $ go build -o /usr/local/bin/hosts
