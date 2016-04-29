@@ -9,48 +9,48 @@ For compiling the program Go Lang is required. Please note that it was developed
 
 For Compiling it into the subdirectory ``bin/`` run:
 
-    $ go build -o bin/hosts
+    go build -o bin/hosts
 
 If you for example want to add it to your default path for binaries you could run:
 
-    $ go build -o /usr/local/bin/hosts
+    go build -o /usr/local/bin/hosts
 
 ## Usage
 ### Listing
 
-    $ sudo hosts list
+    sudo hosts list
 
 ### Adding
 
-    $ sudo hosts add <ip> <hostname>
+    sudo hosts add <ip> <hostname>
 
   So for instance:
 
-    $ sudo hosts add 8.8.8.8 ggdns.com
+    sudo hosts add 8.8.8.8 ggdns.com
 
 ### Removing
 
-    $ sudo hosts rm <ip|hostname>
+    sudo hosts rm <ip|hostname>
 
   So for instance:
 
-    $ sudo hosts rm 8.8.8.8
+    sudo hosts rm 8.8.8.8
 
   but also:
 
-    $ sudo hosts rm ggdns.com
+    sudo hosts rm ggdns.com
 
 
 ### Commenting
 
   To comment an entry type the following:
 
-    $ sudo hosts com <ip|hostname>
+    sudo hosts com <ip|hostname>
 
   To UNcomment an entry type the following:
 
-    $ sudo hosts ucom <ip|hostname>
+    sudo hosts ucom <ip|hostname>
 
   So for instance:
 
-    $ sudo hosts com ggdns.com
+    sudo hosts com ggdns.com
