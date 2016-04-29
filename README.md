@@ -1,6 +1,6 @@
 # hosts_cli
 
-This is a utility to easily manage your DNS-entries in /etc/hosts. You can list, add, remove, comment or uncomment entries with it.
+This is a utility to easily manage your DNS-entries in ``/etc/hosts``. You can list, add, remove, comment or uncomment entries with it.
 ====
 
 ## Getting Started
@@ -8,7 +8,7 @@ For compiling the program Go Lang is required. Please note that it was developed
 
 ### Compiling it
 
-For Compiling it into the subdirectory $bin/$ run:
+For Compiling it into the subdirectory ´´bin/´´ run:
 
     $ go build -o bin/hosts
 
