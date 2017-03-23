@@ -80,6 +80,7 @@ func main() {
 	}
 
 }
+
 func modify(modifyString string, action string) {
 	inb, _ := ioutil.ReadFile(filename)
 	in := string(inb)
@@ -98,6 +99,7 @@ func modify(modifyString string, action string) {
 				if len(inss) > 1 {
 					l := line{inss[0], inss[1]}
 					l.ip = strings.Replace(l.ip, "#", "", -1)
+
 					switch action {
 					case "del":
 						if l.ip != modifyString && l.hostname != modifyString {
@@ -106,6 +108,7 @@ func modify(modifyString string, action string) {
 						} else {
 							fmt.Printf("Deleted %s -- %s!\n", l.ip, l.hostname)
 						}
+
 					case "comment":
 						if l.ip == modifyString || l.hostname == modifyString {
 							out += "#" + ins[i] + "\n"
@@ -113,6 +116,7 @@ func modify(modifyString string, action string) {
 						} else {
 							out += ins[i] + "\n"
 						}
+
 					case "uncomment":
 						if l.ip == modifyString || l.hostname == modifyString {
 							ins[i] = strings.Replace(ins[i], "#", "", -1)
@@ -121,31 +125,32 @@ func modify(modifyString string, action string) {
 						} else {
 							out += ins[i] + "\n"
 						}
-					}
 
-					//fmt.Println("added -- "+ins[i])
+					}
 				}
 
 			} else {
 				out += ins[i] + "\n"
 			}
-
 		}
-
 	}
+
 	if in != out {
 		ioutil.WriteFile(filename, []byte(out), 0644)
 	}
 }
+
 func add(ip string, hostname string) {
 	inb, _ := ioutil.ReadFile(filename)
 	in := string(inb)
 	var out string
+
 	if in[len(in)-1:len(in)] == "\n" {
 		out = fmt.Sprintf("%s%s %s", in, ip, hostname)
 	} else {
 		out = fmt.Sprintf("%s\n%s %s", in, ip, hostname)
 	}
+
 	err := ioutil.WriteFile(filename, []byte(out), 0644)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -153,12 +158,14 @@ func add(ip string, hostname string) {
 		fmt.Printf("Added: IP: %s \t HOSTNAME: %s\n", ip, hostname)
 	}
 }
+
 func read() ([]line, []line) {
 	var entries, comments []line
 	inb, _ := ioutil.ReadFile(filename)
 	in := string(inb)
 	ins := strings.Split(in, "\n")
 	var startcalled bool
+
 	for i := range ins {
 		if len(ins[i]) != 0 {
 
@@ -185,27 +192,36 @@ func read() ([]line, []line) {
 
 	return entries, comments
 }
+
 func list(entries []line, comments []line) {
 	if len(entries)+len(comments) == 0 {
 		fmt.Println("There was nothing added from hostsedit.")
+
 	} else {
 		if len(entries) > 0 {
 			fmt.Println("Hostnames:")
+
 			for _, h := range entries {
 				fmt.Printf("IP: %s \t", h.ip)
+
 				if len(h.ip) < 10 {
 					fmt.Printf("\t")
 				}
+
 				fmt.Printf("HOSTNAME: %s \n", h.hostname)
 			}
 		}
+
 		if len(comments) > 0 {
 			fmt.Println("\nComments:")
+
 			for _, h := range comments {
 				fmt.Printf("IP: %s \t", h.ip)
+
 				if len(h.ip) < 10 {
 					fmt.Printf("\t")
 				}
+
 				fmt.Printf("HOSTNAME: %s \n", h.hostname)
 			}
 		}
