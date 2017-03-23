@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -13,12 +14,25 @@ type line struct {
 
 const filename = "/etc/hosts"
 
+func iAmRoot() bool {
+	cmd := exec.Command("whoami")
+	user, err := cmd.Output()
+	if err != nil {
+		// couldn't determine root due to error, run anyway - the user won't be able
+		// to mod anything without root rights anyway
+		return true
+	}
+
+	return strings.TrimSpace(string(user)) == "root"
+}
+
 func init() {
-	if len(os.Getenv("SUDO_USER")) == 0 {
+	if !iAmRoot() {
 		fmt.Println("Please run this program as Root!")
 		os.Exit(0)
 	}
 }
+
 func main() {
 	if len(os.Args) <= 1 {
 		fmt.Println("Please input command!")
