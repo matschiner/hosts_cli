@@ -35,42 +35,44 @@ func init() {
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Println("Please input command!")
-		os.Exit(0)
+		fmt.Println("Nothing to do, please specify command")
+		os.Exit(1)
 	}
-	command := os.Args[1]
+
+	command := string(os.Args[1])
 
 	// fmt.Println(command)
-	switch {
+	switch command {
 	default:
-		fmt.Println("Your command is undefined!")
-		os.Exit(0)
-	case string(command) == "list":
+		fmt.Println("Unknown command:", command)
+		os.Exit(1)
+
+	case "list", "ls":
 		entries, comments := read()
 		list(entries, comments)
 
-	case string(command) == "rm":
+	case "del", "rm", "-":
 		if len(os.Args) != 3 {
 			fmt.Println("Please input a domain or ip address to delete!")
 			os.Exit(0)
 		}
 		modify(string(os.Args[2]), "del")
 
-	case string(command) == "ucom":
+	case "ucom":
 		if len(os.Args) != 3 {
 			fmt.Println("Please input a domain or ip address to delete!")
 			os.Exit(0)
 		}
 		modify(string(os.Args[2]), "uncomment")
 
-	case string(command) == "com":
+	case "com":
 		if len(os.Args) != 3 {
 			fmt.Println("Please input a domain or ip address to delete!")
 			os.Exit(0)
 		}
 		modify(string(os.Args[2]), "comment")
 
-	case string(command) == "add":
+	case "add", "+":
 		if len(os.Args) != 4 {
 			fmt.Println("Please input more arguments!")
 			os.Exit(0)
