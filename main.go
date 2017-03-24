@@ -16,6 +16,32 @@ type line struct {
 
 const filename = "/etc/hosts"
 
+func containsPart(haystack, needle string) bool {
+	return strings.Contains(haystack, "\t"+needle) || strings.Contains(haystack, needle+"\t")
+}
+
+
+func reverse(a []int) []int {
+	for i := len(a)/2 - 1; i >= 0; i-- {
+		opp := len(a) - 1 - i
+		a[i], a[opp] = a[opp], a[i]
+	}
+
+	return a
+}
+
+func amIRoot() bool {
+	cmd := exec.Command("whoami")
+	user, err := cmd.Output()
+	if err != nil {
+		// couldn't determine root due to error, run anyway - the user won't be able
+		// to mod anything without root rights anyway
+		return true
+	}
+
+	return strings.TrimSpace(string(user)) == "root"
+}
+
 type hostlist struct {
 	lines []string
 }
@@ -78,19 +104,6 @@ func (hl *hostlist) Add(a, b string) error {
 	return nil
 }
 
-func containsPart(haystack, needle string) bool {
-	return strings.Contains(haystack, "\t"+needle) || strings.Contains(haystack, needle+"\t")
-}
-
-func reverse(a []int) []int {
-	for i := len(a)/2 - 1; i >= 0; i-- {
-		opp := len(a) - 1 - i
-		a[i], a[opp] = a[opp], a[i]
-	}
-
-	return a
-}
-
 func (hl *hostlist) Remove(thing string) error {
 	deletes := []int{}
 	for i, line := range hl.lines {
@@ -126,26 +139,10 @@ func (hl *hostlist) Uncomment(thing string) error {
 	return nil
 }
 
-func iAmRoot() bool {
-	cmd := exec.Command("whoami")
-	user, err := cmd.Output()
-	if err != nil {
-		// couldn't determine root due to error, run anyway - the user won't be able
-		// to mod anything without root rights anyway
-		return true
-	}
-
-	return strings.TrimSpace(string(user)) == "root"
-}
-
-func init() {
-
-}
-
 func main() {
 	log.SetFlags(0)
 
-	if !iAmRoot() {
+	if !amIRoot() {
 		log.Fatal("Please run this program as Root!")
 	}
 
