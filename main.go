@@ -43,7 +43,8 @@ func amIRoot() bool {
 }
 
 type hostlist struct {
-	lines []string
+	lines   []string
+	changed bool
 }
 
 func (hl *hostlist) Read(fn string) error {
@@ -101,6 +102,7 @@ func (hl *hostlist) Add(a, b string) error {
 	}
 
 	hl.lines = append(hl.lines, fmt.Sprintf("%s\t%s", ip, hostname))
+	hl.changed = true
 	return nil
 }
 
@@ -116,6 +118,7 @@ func (hl *hostlist) Remove(thing string) error {
 		hl.lines = append(hl.lines[:i], hl.lines[i+1:]...)
 	}
 
+	hl.changed = true
 	return nil
 }
 
@@ -126,6 +129,7 @@ func (hl *hostlist) Comment(thing string) error {
 		}
 	}
 
+	hl.changed = true
 	return nil
 }
 
@@ -136,6 +140,7 @@ func (hl *hostlist) Uncomment(thing string) error {
 		}
 	}
 
+	hl.changed = true
 	return nil
 }
 
@@ -208,5 +213,8 @@ func main() {
 
 	}
 
-	hosts.Write(filename)
+	if hosts.changed {
+		log.Printf("writing changes to %s", filename)
+		hosts.Write(filename)
+	}
 }
