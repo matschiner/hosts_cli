@@ -40,6 +40,26 @@ func (hl *hostlist) Write(fn string) error {
 
 func (hl *hostlist) Bytes() []byte {
 	return []byte(strings.Join(hl.lines, "\n"))
+
+func (hl *hostlist) Contains(a, b string) (bool, error) {
+	var ip, hostname string
+
+	if net.ParseIP(a) == nil && net.ParseIP(b) == nil {
+		return false, fmt.Errorf("neither %s or %s is a valid IP address", a, b)
+	}
+
+	if net.ParseIP(a) == nil {
+		hostname = a
+		ip = b
+	}
+
+	for _, line := range hl.lines {
+		if line == fmt.Sprintf("%s\t%s", ip, hostname) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (hl *hostlist) Add(a, b string) error {
@@ -172,6 +192,22 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+	case "has", "?", "contains":
+		if len(os.Args) != 4 {
+			log.Fatal("Please give arguments in the form ip, hostname")
+		}
+
+		yes, err := hosts.Contains(os.Args[2], os.Args[3])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if yes {
+			os.Exit(0) // exit code 0 means it was contained within
+		}
+
+		os.Exit(1) // exit code 1 means not contained within
 
 	}
 
