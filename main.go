@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -20,6 +21,10 @@ func containsPart(haystack, needle string) bool {
 	return strings.Contains(haystack, "\t"+needle) || strings.Contains(haystack, needle+"\t")
 }
 
+func condenseNewlines(s string) string {
+	var re = regexp.MustCompile(`\n+`)
+	return re.ReplaceAllString(s, "\n\n")
+}
 
 func reverse(a []int) []int {
 	for i := len(a)/2 - 1; i >= 0; i-- {
@@ -58,7 +63,8 @@ func (hl *hostlist) Read(fn string) error {
 }
 
 func (hl *hostlist) Parse(b []byte) {
-	hl.lines = strings.Split(string(b), "\n")
+	s := condenseNewlines(string(b))
+	hl.lines = strings.Split(s, "\n")
 }
 
 func (hl *hostlist) Write(fn string) error {
@@ -66,7 +72,9 @@ func (hl *hostlist) Write(fn string) error {
 }
 
 func (hl *hostlist) Bytes() []byte {
-	return []byte(strings.Join(hl.lines, "\n"))
+	s := condenseNewlines(strings.Join(hl.lines, "\n"))
+	return []byte(s)
+}
 
 func (hl *hostlist) Contains(a, b string) (bool, error) {
 	var ip, hostname string
