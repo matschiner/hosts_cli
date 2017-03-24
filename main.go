@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,6 +15,96 @@ type line struct {
 }
 
 const filename = "/etc/hosts"
+
+type hostlist struct {
+	lines []string
+}
+
+func (hl *hostlist) Read(fn string) error {
+	b, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return err
+	}
+
+	hl.Parse(b)
+	return nil
+}
+
+func (hl *hostlist) Parse(b []byte) {
+	hl.lines = strings.Split(string(b), "\n")
+}
+
+func (hl *hostlist) Write(fn string) error {
+	return ioutil.WriteFile(fn, hl.Bytes(), 0644)
+}
+
+func (hl *hostlist) Bytes() []byte {
+	return []byte(strings.Join(hl.lines, "\n"))
+}
+
+func (hl *hostlist) Add(a, b string) error {
+	var ip, hostname string
+
+	if net.ParseIP(a) == nil && net.ParseIP(b) == nil {
+		return fmt.Errorf("neither %s or %s is a valid IP address", a, b)
+	}
+
+	if net.ParseIP(a) == nil {
+		hostname = a
+		ip = b
+	}
+
+	hl.lines = append(hl.lines, fmt.Sprintf("%s\t%s", ip, hostname))
+	return nil
+}
+
+func containsPart(haystack, needle string) bool {
+	return strings.Contains(haystack, "\t"+needle) || strings.Contains(haystack, needle+"\t")
+}
+
+func reverse(a []int) []int {
+	for i := len(a)/2 - 1; i >= 0; i-- {
+		opp := len(a) - 1 - i
+		a[i], a[opp] = a[opp], a[i]
+	}
+
+	return a
+}
+
+func (hl *hostlist) Remove(thing string) error {
+	deletes := []int{}
+	for i, line := range hl.lines {
+		if containsPart(line, thing) {
+			deletes = append(deletes, i)
+		}
+	}
+
+	for _, i := range reverse(deletes) {
+		hl.lines = append(hl.lines[:i], hl.lines[i+1:]...)
+	}
+
+	return nil
+}
+
+func (hl *hostlist) Comment(thing string) error {
+	for i, line := range hl.lines {
+		if containsPart(line, thing) {
+			hl.lines[i] = "#" + line
+		}
+	}
+
+	return nil
+}
+
+func (hl *hostlist) Uncomment(thing string) error {
+	for i, line := range hl.lines {
+		if containsPart(line, thing) {
+			hl.lines[i] = strings.TrimLeft(line, "#")
+		}
+	}
+
+	return nil
+}
 
 func iAmRoot() bool {
 	cmd := exec.Command("whoami")
@@ -27,205 +119,61 @@ func iAmRoot() bool {
 }
 
 func init() {
-	if !iAmRoot() {
-		fmt.Println("Please run this program as Root!")
-		os.Exit(0)
-	}
+
 }
 
 func main() {
-	if len(os.Args) <= 1 {
-		fmt.Println("Nothing to do, please specify command")
-		os.Exit(1)
+	log.SetFlags(0)
+
+	if !iAmRoot() {
+		log.Fatal("Please run this program as Root!")
 	}
+
+	if len(os.Args) <= 1 {
+		log.Fatal("Nothing to do, please specify command")
+	}
+
+	hosts := hostlist{}
+	hosts.Read(filename)
 
 	command := string(os.Args[1])
 
 	// fmt.Println(command)
 	switch command {
 	default:
-		fmt.Println("Unknown command:", command)
-		os.Exit(1)
+		log.Fatalf("Unknown command: %s", command)
 
 	case "list", "ls":
-		entries, comments := read()
-		list(entries, comments)
+		fmt.Println(string(hosts.Bytes()))
 
 	case "del", "rm", "-":
 		if len(os.Args) != 3 {
-			fmt.Println("Please input a domain or ip address to delete!")
-			os.Exit(0)
+			log.Fatal("Please give an IP or hostname to delete")
 		}
-		modify(string(os.Args[2]), "del")
+		hosts.Remove(os.Args[2])
 
 	case "ucom":
 		if len(os.Args) != 3 {
-			fmt.Println("Please input a domain or ip address to delete!")
-			os.Exit(0)
+			log.Fatal("Please give an IP or hostname to uncomment")
 		}
-		modify(string(os.Args[2]), "uncomment")
+		hosts.Uncomment(os.Args[2])
 
 	case "com":
 		if len(os.Args) != 3 {
-			fmt.Println("Please input a domain or ip address to delete!")
-			os.Exit(0)
+			log.Fatal("Please give an IP or hostname to comment out")
 		}
-		modify(string(os.Args[2]), "comment")
+		hosts.Comment(os.Args[2])
 
 	case "add", "+":
 		if len(os.Args) != 4 {
-			fmt.Println("Please input more arguments!")
-			os.Exit(0)
+			log.Fatal("Please give arguments in the form ip, hostname")
 		}
-		add(string(os.Args[2]), string(os.Args[3]))
-
-	}
-
-}
-
-func modify(modifyString string, action string) {
-	inb, _ := ioutil.ReadFile(filename)
-	in := string(inb)
-	ins := strings.Split(in, "\n")
-	var startcalled bool
-	var out string
-
-	for i := range ins {
-		if len(ins[i]) != 0 {
-			if ins[i] == "#hostedit" {
-				startcalled = true
-				out += ins[i] + "\n"
-
-			} else if startcalled == true {
-				inss := strings.Split(string(ins[i]), " ")
-				if len(inss) > 1 {
-					l := line{inss[0], inss[1]}
-					l.ip = strings.Replace(l.ip, "#", "", -1)
-
-					switch action {
-					case "del":
-						if l.ip != modifyString && l.hostname != modifyString {
-							out += ins[i] + "\n"
-
-						} else {
-							fmt.Printf("Deleted %s -- %s!\n", l.ip, l.hostname)
-						}
-
-					case "comment":
-						if l.ip == modifyString || l.hostname == modifyString {
-							out += "#" + ins[i] + "\n"
-							fmt.Printf("Commented %s -- %s!\n", l.ip, l.hostname)
-						} else {
-							out += ins[i] + "\n"
-						}
-
-					case "uncomment":
-						if l.ip == modifyString || l.hostname == modifyString {
-							ins[i] = strings.Replace(ins[i], "#", "", -1)
-							out += ins[i] + "\n"
-							fmt.Printf("Uncommented %s -- %s!\n", l.ip, l.hostname)
-						} else {
-							out += ins[i] + "\n"
-						}
-
-					}
-				}
-
-			} else {
-				out += ins[i] + "\n"
-			}
-		}
-	}
-
-	if in != out {
-		ioutil.WriteFile(filename, []byte(out), 0644)
-	}
-}
-
-func add(ip string, hostname string) {
-	inb, _ := ioutil.ReadFile(filename)
-	in := string(inb)
-	var out string
-
-	if in[len(in)-1:len(in)] == "\n" {
-		out = fmt.Sprintf("%s%s %s", in, ip, hostname)
-	} else {
-		out = fmt.Sprintf("%s\n%s %s", in, ip, hostname)
-	}
-
-	err := ioutil.WriteFile(filename, []byte(out), 0644)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Printf("Added: IP: %s \t HOSTNAME: %s\n", ip, hostname)
-	}
-}
-
-func read() ([]line, []line) {
-	var entries, comments []line
-	inb, _ := ioutil.ReadFile(filename)
-	in := string(inb)
-	ins := strings.Split(in, "\n")
-	var startcalled bool
-
-	for i := range ins {
-		if len(ins[i]) != 0 {
-
-			if string(ins[i][0]) == "#" && ins[i] == "#hostedit" {
-				startcalled = true
-			} else if startcalled == true {
-				inss := strings.Split(string(ins[i]), " ")
-				if len(inss) > 1 {
-					l := line{inss[0], inss[1]}
-					if inss[0][0:1] == "#" {
-						l.ip = strings.Replace(l.ip, "#", "", -1)
-						comments = append(comments, l)
-					} else {
-						entries = append(entries, l)
-					}
-					//fmt.Println("added -- "+ins[i])
-				}
-
-			}
-
+		err := hosts.Add(os.Args[2], os.Args[3])
+		if err != nil {
+			log.Fatal(err)
 		}
 
 	}
 
-	return entries, comments
-}
-
-func list(entries []line, comments []line) {
-	if len(entries)+len(comments) == 0 {
-		fmt.Println("There was nothing added from hostsedit.")
-
-	} else {
-		if len(entries) > 0 {
-			fmt.Println("Hostnames:")
-
-			for _, h := range entries {
-				fmt.Printf("IP: %s \t", h.ip)
-
-				if len(h.ip) < 10 {
-					fmt.Printf("\t")
-				}
-
-				fmt.Printf("HOSTNAME: %s \n", h.hostname)
-			}
-		}
-
-		if len(comments) > 0 {
-			fmt.Println("\nComments:")
-
-			for _, h := range comments {
-				fmt.Printf("IP: %s \t", h.ip)
-
-				if len(h.ip) < 10 {
-					fmt.Printf("\t")
-				}
-
-				fmt.Printf("HOSTNAME: %s \n", h.hostname)
-			}
-		}
-	}
+	hosts.Write(filename)
 }
