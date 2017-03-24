@@ -28,7 +28,13 @@ func (hl *hostlist) Parse(b []byte) {
 }
 
 func (hl *hostlist) Write(fn string) error {
-	return ioutil.WriteFile(fn, hl.Bytes(), 0644)
+	err := ioutil.WriteFile(fn, hl.Bytes(), 0644)
+
+	if err == nil {
+		hl.changed = false
+	}
+
+	return err
 }
 
 func (hl *hostlist) Bytes() []byte {
