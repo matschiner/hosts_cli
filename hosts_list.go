@@ -28,7 +28,13 @@ func (hl *hostlist) Parse(b []byte) {
 }
 
 func (hl *hostlist) Write(fn string) error {
-	return ioutil.WriteFile(fn, hl.Bytes(), 0644)
+	err := ioutil.WriteFile(fn, hl.Bytes(), 0644)
+
+	if err == nil {
+		hl.changed = false
+	}
+
+	return err
 }
 
 func (hl *hostlist) Bytes() []byte {
@@ -42,6 +48,9 @@ func (hl *hostlist) Contains(a, b string) (bool, error) {
 	if net.ParseIP(a) == nil && net.ParseIP(b) == nil {
 		return false, fmt.Errorf("neither %s or %s is a valid IP address", a, b)
 	}
+
+	hostname = b
+	ip = a
 
 	if net.ParseIP(a) == nil {
 		hostname = a
@@ -63,6 +72,9 @@ func (hl *hostlist) Add(a, b string) error {
 	if net.ParseIP(a) == nil && net.ParseIP(b) == nil {
 		return fmt.Errorf("neither %s or %s is a valid IP address", a, b)
 	}
+
+	hostname = b
+	ip = a
 
 	if net.ParseIP(a) == nil {
 		hostname = a
