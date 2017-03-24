@@ -43,6 +43,9 @@ func (hl *hostlist) Contains(a, b string) (bool, error) {
 		return false, fmt.Errorf("neither %s or %s is a valid IP address", a, b)
 	}
 
+	hostname = b
+	ip = a
+
 	if net.ParseIP(a) == nil {
 		hostname = a
 		ip = b
@@ -63,6 +66,9 @@ func (hl *hostlist) Add(a, b string) error {
 	if net.ParseIP(a) == nil && net.ParseIP(b) == nil {
 		return fmt.Errorf("neither %s or %s is a valid IP address", a, b)
 	}
+
+	hostname = b
+	ip = a
 
 	if net.ParseIP(a) == nil {
 		hostname = a
